@@ -98,6 +98,9 @@ const getLiveLocation = async () => {
     }
   })
 
+  console.log(trip)
+  console.log(liveLocations)
+
   setTimeout(getLiveLocation, 1000 * 60);
 };
 
