@@ -58,7 +58,7 @@ const getLiveLocation = async () => {
     if (section.departure === 0) return; // skip if the segment hasnt started (should be caught by line above)
     if (section.arrival !== 0) return; // skip if the segment has ended
 
-    if (section.segment_line === 'bus') {
+    if (section.segment_line.startsWith('bus')) {
       console.log('bus')
       fetch(`http://www.ctabustracker.com/bustime/api/v2/getpredictions?key=${process.env.CTA_BUS_KEY}&format=json&stpid=${section.end_station_id}`)
         .then((res) => res.json())
@@ -69,7 +69,7 @@ const getLiveLocation = async () => {
               if (Number(bus.vid) == section.vehicle_id) {
                 liveLocations[section.segment_id] = {
                   vehicle_id: Number(bus.vid),
-                  segment_line: bus.rt,
+                  segment_line: section.segment_line.split('_')[1],
                   arrival: parseBusDate(bus.prdtm),
                   end_station_id: section.end_station_id,
                   end_station_name: section.end_station_name,
@@ -78,10 +78,10 @@ const getLiveLocation = async () => {
             })
           };
         });
-    } else if (section.segment_line === 'pace') {
+    } else if (section.segment_line.startsWith('pace')) {
       console.log('pace')
       return;
-    } else { //cta train
+    } else if (section.segment_line.startsWith('train')) { //cta train
       console.log('train')
       fetch(`http://lapi.transitchicago.com/api/1.0/ttarrivals.aspx?mapid=${section.end_station_id}&key=${process.env.CTA_TRAIN_KEY}&outputType=JSON`)
         .then((res) => res.json())
@@ -93,7 +93,7 @@ const getLiveLocation = async () => {
                 console.log('found train', section.vehicle_id)
                 liveLocations[section.segment_id] = {
                   vehicle_id: section.vehicle_id,
-                  segment_line: section.segment_line,
+                  segment_line: section.segment_line.split('_')[1],
                   arrival: new Date(train.arrT),
                   end_station_id: section.end_station_id,
                   end_station_name: section.end_station_name,
