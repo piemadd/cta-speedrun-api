@@ -21,7 +21,7 @@ const parseBusDate = (date) => {
 
 const fetchTripData = async () => {
   console.log('updating trip data')
-  fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vT6WGmf9kubHJfoVWYPQPC-OdnMhK1xUSldie0ZPeMOpdFI2NsL_3DeJeMwoJcXyzRDshTTgn5z67Vz/pub?output=csv')
+  fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vT6WGmf9kubHJfoVWYPQPC-OdnMhK1xUSldie0ZPeMOpdFI2NsL_3DeJeMwoJcXyzRDshTTgn5z67Vz/pub?output=csv', { cache: "reload" })
     .then(res => res.text())
     .then(body => {
       console.log('trip data fetched, parsing')
@@ -52,16 +52,19 @@ const fetchTripData = async () => {
 };
 
 const getLiveLocation = async () => {
+  console.log('updating live locations')
   trip.forEach((section) => {
     if (section.vehicle_id === 0) return; // skip if there is no vehicle id
     if (section.departure === 0) return; // skip if the segment hasnt started (should be caught by line above)
     if (section.arrival !== 0) return; // skip if the segment has ended
 
     if (section.segment_line === 'bus') {
+      console.log('bus')
       fetch(`http://www.ctabustracker.com/bustime/api/v2/getpredictions?key=${process.env.CTA_BUS_KEY}&format=json&stpid=${section.end_station_id}`)
         .then((res) => res.json())
         .then((body) => {
           if (body['bustime-response'].prd && body['bustime-response'].prd.length > 0) {
+            console.log('found bus', section.vehicle_id)
             body['bustime-response'].prd.forEach((bus) => {
               if (Number(bus.vid) == section.vehicle_id) {
                 liveLocations[section.segment_id] = {
@@ -73,19 +76,21 @@ const getLiveLocation = async () => {
                 };
               };
             })
-
-            console.log(trip)
           };
         });
     } else if (section.segment_line === 'pace') {
+      console.log('pace')
       return;
     } else { //cta train
-      fetch(`http://lapi.transitchicago.com/api/1.0/ttarrivals.aspx?stpid=${section.end_station_id}&key=${process.env.CTA_TRAIN_KEY}&outputType=JSON`)
+      console.log('train')
+      fetch(`http://lapi.transitchicago.com/api/1.0/ttarrivals.aspx?mapid=${section.end_station_id}&key=${process.env.CTA_TRAIN_KEY}&outputType=JSON`)
         .then((res) => res.json())
         .then((body) => {
-          if (body.catt && body.catt.eta.length > 0) {
-            body.catt.eta.forEach((train) => {
-              if (train.rn == section.vehicel_id && train.isSch == 0) {
+          if (body.ctatt.eta && body.ctatt.eta.length > 0) {
+            body.ctatt.eta.forEach((train) => {
+              console.log(train.rn, section.vehicle_id, train.isSch)
+              if (train.rn == section.vehicle_id && train.isSch == 0) {
+                console.log('found train', section.vehicle_id)
                 liveLocations[section.segment_id] = {
                   vehicle_id: section.vehicle_id,
                   segment_line: section.segment_line,
@@ -95,8 +100,6 @@ const getLiveLocation = async () => {
                 };
               };
             })
-
-            console.log(liveLocations)
           }
         });
     }
