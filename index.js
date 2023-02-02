@@ -106,10 +106,16 @@ app.get('/', (req, res) => {
 });
 
 app.get('/trip', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+  res.setHeader('Access-Control-Allow-Methods', '*');
   res.json(trip);
 });
 
 app.get('/live', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+  res.setHeader('Access-Control-Allow-Methods', '*');
   res.json(liveLocations);
 });
 
