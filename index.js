@@ -73,6 +73,8 @@ const getLiveLocation = async () => {
                 };
               };
             })
+
+            console.log(trip)
           };
         });
     } else if (section.segment_line === 'pace') {
@@ -93,13 +95,12 @@ const getLiveLocation = async () => {
                 };
               };
             })
+
+            console.log(liveLocations)
           }
         });
     }
   })
-
-  console.log(trip)
-  console.log(liveLocations)
 
   setTimeout(getLiveLocation, 1000 * 60);
 };
