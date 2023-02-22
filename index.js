@@ -145,6 +145,8 @@ app.get('/trip', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', '*');
   res.setHeader('Access-Control-Allow-Methods', '*');
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-cache');
   res.json(trip);
 });
 
@@ -152,6 +154,7 @@ app.get('/live', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', '*');
   res.setHeader('Access-Control-Allow-Methods', '*');
+  res.setHeader('Cache-Control', 'no-cache');
   res.json(liveLocations);
 });
 
