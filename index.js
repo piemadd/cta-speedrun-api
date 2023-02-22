@@ -12,16 +12,30 @@ let liveLocations = {};
 const parseBusDate = (date) => {
   //example 20230202 03:36
 
-  console.log(date)
-
   const year = date.substring(0, 4);
   const month = date.substring(4, 6);
   const day = date.substring(6, 8);
   const hour = date.substring(9, 11);
-  const minute = date.substring(11, 13);
-  console.log(`${year}-${month}-${day}T${hour}:${minute}:00-06:00`)
-  console.log(new Date(`${year}-${month}-${day}T${hour}:${minute}:00-06:00`))
+  const minute = date.substring(12, 14);
   return new Date(`${year}-${month}-${day}T${hour}:${minute}:00-06:00`);
+}
+
+const parseSheetsDate = (date) => {
+  //example 06:00:00
+  //assyme feb 22nd 2023
+  if (date === '0:00:00') return 0;
+
+  const hour = date.split(':')[0].padStart(2, '0');
+  const minute = date.split(':')[1].padStart(2, '0');
+  const second = date.split(':')[2].padStart(2, '0');
+
+  console.log(date)
+  console.log(hour, minute, second)
+
+  console.log(`2023-02-22T${hour}:${minute}:${second}-06:00`)
+  console.log(new Date(`2023-02-22T${hour}:${minute}:${second}-06:00`))
+
+  return new Date(`2023-02-22T${hour}:${minute}:${second}-06:00`);
 }
 
 const fetchTripData = async () => {
@@ -44,8 +58,10 @@ const fetchTripData = async () => {
           start_station_id: Number(record.start_station_id),
           end_station_name: record.end_station_name,
           end_station_id: Number(record.end_station_id),
-          act_dep: Number(record.act_dep),
-          act_arr: Number(record.act_arr),
+          sch_dep: parseSheetsDate(record.sch_dep),
+          sch_arr: parseSheetsDate(record.sch_arr),
+          act_dep: parseSheetsDate(record.act_dep),
+          act_arr: parseSheetsDate(record.act_arr),
           vehicle_id: Number(record.vehicle_id),
         };
       });;
@@ -61,8 +77,8 @@ const getLiveLocation = async () => {
   console.log('updating live locations')
   trip.forEach((section) => {
     if (section.vehicle_id === 0) return; // skip if there is no vehicle id
-    //if (section.act_dep === 0) return; // skip if the segment hasnt started (should be caught by line above)
-    //if (section.act_arr !== 0) return; // skip if the segment has ended
+    if (section.act_dep === 0) return; // skip if the segment hasnt started (should be caught by line above)
+    if (section.act_arr !== 0) return; // skip if the segment has ended
 
     if (section.segment_line.startsWith('bus')) {
       console.log('bus')
