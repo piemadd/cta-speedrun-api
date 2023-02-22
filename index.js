@@ -101,7 +101,7 @@ const getLiveLocation = async () => {
                 liveLocations[section.segment_id] = {
                   vehicle_id: section.vehicle_id,
                   segment_line: section.segment_line.split('_')[1],
-                  act_arr: new Date(train.arrT),
+                  arrival: new Date(new Date(train.arrT).valueOf() + (1000 * 60 * 60 * 6)),
                   end_station_id: section.end_station_id,
                   end_station_name: section.end_station_name,
                 };
