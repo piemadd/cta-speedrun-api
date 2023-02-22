@@ -126,7 +126,19 @@ const getLiveLocation = async () => {
 };
 
 app.get('/', (req, res) => {
-  res.send('hiiiii')
+  res.send(
+    `<!DOCTYPE html>
+    <html>
+      <body>
+      <p>haiiiiiii :3</p>
+        <p>endpoints:</p>
+        <ul>
+          <li><a href="/trip">/trip</a></li>
+          <li><a href="/live">/live</a></li>
+        </ul>
+      </body>
+    </html>`
+  )
 });
 
 app.get('/trip', (req, res) => {
