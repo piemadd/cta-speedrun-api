@@ -29,12 +29,6 @@ const parseSheetsDate = (date) => {
   const minute = date.split(':')[1].padStart(2, '0');
   const second = date.split(':')[2].padStart(2, '0');
 
-  console.log(date)
-  console.log(hour, minute, second)
-
-  console.log(`2023-02-22T${hour}:${minute}:${second}-06:00`)
-  console.log(new Date(`2023-02-22T${hour}:${minute}:${second}-06:00`))
-
   return new Date(`2023-02-22T${hour}:${minute}:${second}-06:00`);
 }
 
