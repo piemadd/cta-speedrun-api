@@ -11,17 +11,22 @@ let liveLocations = {};
 
 const parseBusDate = (date) => {
   //example 20230202 03:36
+
+  console.log(date)
+
   const year = date.substring(0, 4);
   const month = date.substring(4, 6);
   const day = date.substring(6, 8);
   const hour = date.substring(9, 11);
   const minute = date.substring(11, 13);
+  console.log(`${year}-${month}-${day}T${hour}:${minute}:00-06:00`)
+  console.log(new Date(`${year}-${month}-${day}T${hour}:${minute}:00-06:00`))
   return new Date(`${year}-${month}-${day}T${hour}:${minute}:00-06:00`);
 }
 
 const fetchTripData = async () => {
   console.log('updating trip data')
-  fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vT6WGmf9kubHJfoVWYPQPC-OdnMhK1xUSldie0ZPeMOpdFI2NsL_3DeJeMwoJcXyzRDshTTgn5z67Vz/pub?output=csv', { cache: "reload" })
+  fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vT6WGmf9kubHJfoVWYPQPC-OdnMhK1xUSldie0ZPeMOpdFI2NsL_3DeJeMwoJcXyzRDshTTgn5z67Vz/pub?gid=472803097&single=true&output=csv', { cache: "reload" })
     .then(res => res.text())
     .then(body => {
       console.log('trip data fetched, parsing')
@@ -39,8 +44,8 @@ const fetchTripData = async () => {
           start_station_id: Number(record.start_station_id),
           end_station_name: record.end_station_name,
           end_station_id: Number(record.end_station_id),
-          departure: Number(record.departure),
-          arrival: Number(record.arrival),
+          act_dep: Number(record.act_dep),
+          act_arr: Number(record.act_arr),
           vehicle_id: Number(record.vehicle_id),
         };
       });;
@@ -48,6 +53,7 @@ const fetchTripData = async () => {
       console.log('updated trip data!')
     });
 
+  getLiveLocation();
   setTimeout(fetchTripData, 1000 * 60);
 };
 
@@ -55,11 +61,12 @@ const getLiveLocation = async () => {
   console.log('updating live locations')
   trip.forEach((section) => {
     if (section.vehicle_id === 0) return; // skip if there is no vehicle id
-    if (section.departure === 0) return; // skip if the segment hasnt started (should be caught by line above)
-    if (section.arrival !== 0) return; // skip if the segment has ended
+    //if (section.act_dep === 0) return; // skip if the segment hasnt started (should be caught by line above)
+    //if (section.act_arr !== 0) return; // skip if the segment has ended
 
     if (section.segment_line.startsWith('bus')) {
       console.log('bus')
+      console.log(`http://www.ctabustracker.com/bustime/api/v2/getpredictions?key=${process.env.CTA_BUS_KEY}&format=json&stpid=${section.end_station_id}`)
       fetch(`http://www.ctabustracker.com/bustime/api/v2/getpredictions?key=${process.env.CTA_BUS_KEY}&format=json&stpid=${section.end_station_id}`)
         .then((res) => res.json())
         .then((body) => {
@@ -70,7 +77,7 @@ const getLiveLocation = async () => {
                 liveLocations[section.segment_id] = {
                   vehicle_id: Number(bus.vid),
                   segment_line: section.segment_line.split('_')[1],
-                  arrival: parseBusDate(bus.prdtm),
+                  act_arr: parseBusDate(bus.prdtm),
                   end_station_id: section.end_station_id,
                   end_station_name: section.end_station_name,
                 };
@@ -94,7 +101,7 @@ const getLiveLocation = async () => {
                 liveLocations[section.segment_id] = {
                   vehicle_id: section.vehicle_id,
                   segment_line: section.segment_line.split('_')[1],
-                  arrival: new Date(train.arrT),
+                  act_arr: new Date(train.arrT),
                   end_station_id: section.end_station_id,
                   end_station_name: section.end_station_name,
                 };
@@ -105,7 +112,7 @@ const getLiveLocation = async () => {
     }
   })
 
-  setTimeout(getLiveLocation, 1000 * 60);
+  //setTimeout(getLiveLocation, 1000 * 60);
 };
 
 app.get('/', (req, res) => {
@@ -127,6 +134,8 @@ app.get('/live', (req, res) => {
 });
 
 fetchTripData().then(() => {
-  getLiveLocation();
-  app.listen(3000, () => console.log('Listening on port 3000'));
+  //getLiveLocation();
+  app.listen(3000, () => {
+    console.log('Listening on port 3000')
+  });
 })
